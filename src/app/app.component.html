@@ -1,2 +1,10 @@
-<button>Send Text</button>
+<div class="main">
+  <div class="text-area">
+    <textarea placeholder="Type your message" [(ngModel)]="message">
+)]></textarea
+    >
+  </div>
+  <button (click)="submit()">Send Text</button>
+</div>
+
 <router-outlet></router-outlet>
