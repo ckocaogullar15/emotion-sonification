@@ -1,14 +1,23 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>EmotionSonification</title>
-  <base href="/">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
-<body>
-  <app-root></app-root>
-</body>
+<!DOCTYPE html>
+<html>
+  <head>
+    <base href="/" />
+    <title>Angular + videojs-record</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- styles -->
+    <link href="../node_modules/video.js/dist/video-js.css" rel="stylesheet" />
+    <!-- videojs.wavesurfer.css is only required when recording audio-only -->
+    <link
+      href="../node_modules/videojs-wavesurfer/dist/css/videojs.wavesurfer.css"
+      rel="stylesheet"
+    />
+    <link
+      href="../node_modules/videojs-record/dist/css/videojs.record.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <h2>Angular + videojs-record</h2>
+    <videojs-record></videojs-record>
+  </body>
 </html>

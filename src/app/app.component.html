@@ -1,4 +1,4 @@
-<div class="main">
+<!-- <div class="main">
   <div class="text-area">
     <textarea placeholder="Type your message" [(ngModel)]="message">
 )]></textarea
@@ -7,4 +7,16 @@
   <button (click)="submit()">Send Text</button>
 </div>
 
-<router-outlet></router-outlet>
+<router-outlet></router-outlet> -->
+
+<style>
+  /* change player background color */
+  .video-js video {
+    background-color: #42f489;
+  }
+</style>
+<video
+  id="video_{{ idx }}"
+  class="video-js vjs-default-skin"
+  playsinline
+></video>
