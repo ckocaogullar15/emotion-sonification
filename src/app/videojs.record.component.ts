@@ -57,8 +57,8 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       autoplay: false,
       fluid: false,
       loop: false,
-      width: 1440,
-      height: 960,
+      width: 1080,
+      height: 720,
       controlBar: {
         volumePanel: false
       },
@@ -77,11 +77,12 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
           */
         // configure videojs-record plugin
         record: {
-          audio: false,
+          audio: true,
           video: true,
           debug: true
         }
-      }
+      },
+      
     };
   }
 
@@ -123,6 +124,7 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       // recordedData is a blob object containing the recorded data that
       // can be downloaded by the user, stored on server etc.
       console.log("finished recording: ", this.player.recordedData);
+      this.player.record().saveAs({ video: "my-video-file-name.webm" });
     });
 
     // error handling
