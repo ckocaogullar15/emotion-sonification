@@ -21,10 +21,10 @@ import * as Record from "videojs-record/dist/videojs.record.js";
   selector: "videojs-record",
   template: `
     <style>
-      /* change player background color */
+      /* change player background color 
       .video-js video {
         background-color: #42f489;
-      }
+      } */
     </style>
     <video
       id="video_{{ idx }}"
@@ -81,8 +81,7 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
           video: true,
           debug: true
         }
-      },
-      
+      }
     };
   }
 
@@ -124,7 +123,23 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       // recordedData is a blob object containing the recorded data that
       // can be downloaded by the user, stored on server etc.
       console.log("finished recording: ", this.player.recordedData);
-      this.player.record().saveAs({ video: "my-video-file-name.webm" });
+      this.player.record().saveAs({ video: Date.now() + ".webm" });
+      this.player.record().stopDevice();
+      this.player.record().reset();
+      var data = this.player.recordedData;
+      var serverUrl =
+        "https://fpxa3exj4e.execute-api.us-east-1.amazonaws.com/default/uploadFile";
+      //var formData = new FormData();
+      //formData.append('file', data, data.name);
+
+      console.log("uploading recording:", data.name);
+
+      fetch(serverUrl, {
+        method: "POST",
+        body: this.player.recordedData
+      })
+        .then(success => console.log("recording upload complete."))
+        .catch(error => console.error("an upload error occurred!"));
     });
 
     // error handling
