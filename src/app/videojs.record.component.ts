@@ -221,12 +221,14 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
         })
       });
       video.currentTime = 0
-      while(flag !== 1){
+      let wait = () => {
+        if(flag !== 1){
         setTimeout(()=>{
-          return;
-        }, 10)
+          wait()
+        }, 100)
       }
-  
+    }
+      wait();
       resolve(frames);
       
     });
