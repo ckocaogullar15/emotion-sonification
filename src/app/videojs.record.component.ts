@@ -201,20 +201,26 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
           flag = 1;
           return;
         }
-
+        
         context.drawImage(video, 0, 0, w, h);
         let base64ImageData = canvas.toDataURL();
         console.log(currentTime);
+        console.log(video.currentTime);
         console.log(duration);
         frames.push(base64ImageData);
         currentTime += interval;
-        requestAnimationFrame(() => {
+        requestAnimationFrame(async () => {
           video.currentTime = currentTime;
+          await new Promise(r => seekResolve=r);
           updateFrame();
         });
       };
 
-      requestAnimationFrame(updateFrame);
+      requestAnimationFrame(() => {
+        video.currentTime = 0
+        requestAnimationFrame(updateFrame)
+        }
+        );
 
       while (flag !== 1) {
         await new Promise((r) => setTimeout(r, 100));
@@ -255,6 +261,7 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
         console.log("currentTime: " + currentTime);
         console.log("video.currentTime" + video.currentTime);
         //await new Promise(r => seekResolve=r);
+        
         context.drawImage(video, 0, 0, w, h);
         let base64ImageData = canvas.toDataURL();
         frames.push(base64ImageData);
