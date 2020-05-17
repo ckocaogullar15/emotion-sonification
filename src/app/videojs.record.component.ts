@@ -135,17 +135,18 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       //var formData = new FormData();
       //formData.append('file', data, data.name);
       //console.log(data)
-      let frames: string[] = await this.merveKasar(this.player.record().getDuration());
+      let frames: Blob[] = await this.extractFrames(this.player.record().getDuration());
       //let frames: string[] = await this.extractFramesFromVideoNew(this.player.recordedData) as string[]
-      console.log("frames are: " + frames);
+      console.log("frames are: ");
+      console.log(frames);
+
 
       console.log("uploading recording:", data.name);
 
       for (let i = 0; i < frames.length; i++) {
-        window.open(frames[i]);
         fetch(serverUrl, {
           method: "POST",
-          body: frames[i],
+          body: frames[i]
         })
           .then((response) => console.log("success "))
           .catch((error) => console.error("an upload error occurred! " + error))
@@ -171,7 +172,8 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
     }
   }
 
-  async merveKasar(duration: number, fps = 2): Promise<string[]> {
+  async extractFrames(duration: number): Promise<Blob[]> {
+    let fps = 20/duration
     return new Promise(async (resolve) => {
       const video: HTMLVideoElement = document.getElementById(
         "video_clip1_html5_api"
@@ -203,11 +205,15 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
         }
         
         context.drawImage(video, 0, 0, w, h);
-        let base64ImageData = canvas.toDataURL();
+        //let base64ImageData = canvas.toDataURL();
+        canvas.toBlob(function(blob){
+            console.log(blob)
+            frames.push(blob);
+          },'image/png');
         console.log(currentTime);
         console.log(video.currentTime);
         console.log(duration);
-        frames.push(base64ImageData);
+        
         currentTime += interval;
         requestAnimationFrame(async () => {
           video.currentTime = currentTime;
@@ -229,58 +235,4 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
     });
   }
 
-  async extractFramesFromVideo(fps = 2) {
-    return new Promise(async (resolve) => {
-      // fully download it first (no buffering):
-      //let videoBlob = await fetch(videoUrl).then(r => r.blob());
-      //let videoObjectUrl = URL.createObjectURL(videoBlob);
-      //let video = document.createElement("video");
-      let video: HTMLVideoElement = document.getElementById(
-        "video_clip1_html5_api"
-      ) as HTMLVideoElement;
-
-      let duration = video.duration;
-
-      let canvas = document.createElement("canvas");
-      let context = canvas.getContext("2d");
-      let [w, h] = [video.videoWidth, video.videoHeight];
-      canvas.width = w;
-      canvas.height = h;
-
-      let frames = [];
-      let interval = 1 / fps;
-      let currentTime = 0.0;
-      let flag = 0;
-
-      video.addEventListener("seeked", async function () {
-        if (currentTime >= duration) {
-          console.log("frames inside function: " + frames);
-          flag = 1;
-          return;
-        }
-        console.log("currentTime: " + currentTime);
-        console.log("video.currentTime" + video.currentTime);
-        //await new Promise(r => seekResolve=r);
-        
-        context.drawImage(video, 0, 0, w, h);
-        let base64ImageData = canvas.toDataURL();
-        frames.push(base64ImageData);
-        //currentTime += interval;
-        currentTime += interval;
-        requestAnimationFrame(() => {
-          video.currentTime = currentTime;
-        });
-      });
-      video.currentTime = 0;
-      let wait = () => {
-        if (flag !== 1) {
-          setTimeout(() => {
-            wait();
-          }, 100);
-        }
-      };
-      wait();
-      resolve(frames);
-    });
-  }
 }

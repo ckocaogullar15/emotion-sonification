@@ -17,6 +17,7 @@
     "ffmpeg": "0.0.4",
     "ffmpeg.js": "^4.2.9003",
     "rxjs": "^6.5.2",
+    "uuid": "^8.0.0",
     "videojs-record": "^3.10.0",
     "zone.js": "^0.9.1"
   },
