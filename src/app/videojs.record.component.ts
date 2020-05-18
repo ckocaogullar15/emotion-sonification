@@ -93,6 +93,60 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
   // use ngAfterViewInit to make sure we initialize the videojs element
   // after the component template itself has been rendered
   async ngAfterViewInit() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      handlerFunction(stream);
+    });
+    var chunks = [];
+    let mediaRecorder;
+    let handlerFunction = (stream) => {
+      const mime = [
+        "audio/ogg",
+        "audio/mpeg",
+        "audio/webm",
+        "audio/wav",
+      ].filter(MediaRecorder.isTypeSupported)[0];
+      mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+      mediaRecorder.ondataavailable = function (evt) {
+        // push each chunk (blobs) in an array
+        chunks.push(evt.data);
+      };
+
+      mediaRecorder.onstop = function (evt) {
+        // Make blob out of our blobs, and open it.
+        var blob = new Blob(chunks, { type: mime });
+        console.log("here is audio data");
+        console.log(blob);
+        var reader = new FileReader();
+
+        reader.onloadend = function () {
+          console.log("blob as dataurl");
+          console.log(reader.result);
+          fetch(
+            "https://fpxa3exj4e.execute-api.us-east-1.amazonaws.com/default/uploadFile",
+            {
+              method: "POST",
+              body: JSON.stringify({
+                key: "audio " + video_uuid,
+                content: reader.result,
+              }),
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          )
+            .then((response) => console.log("success "))
+            .catch((error) =>
+              console.error("an upload error occurred! " + error)
+            )
+            .then((json) => console.log(json));
+        };
+        var dataURL = reader.readAsDataURL(blob);
+
+        //console.log(dataURL);
+      };
+    };
+    let video_uuid = uuidv4();
+
     // ID with which to access the template's video element
     let el = "video_" + this.idx;
 
@@ -119,12 +173,15 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
     // user clicked the record button and started recording
     this.player.on("startRecord", () => {
       console.log("started recording!");
+      mediaRecorder.start();
     });
 
     // user completed recording and stream is available
     this.player.on("finishRecord", async () => {
       // recordedData is a blob object containing the recorded data that
       // can be downloaded by the user, stored on server etc.
+      mediaRecorder.stop();
+
       console.log("finished recording: ", this.player.recordedData);
       let videoName = Date.now() + ".webm";
       //this.player.record().saveAs({ video: Date.now() + ".webm" });
@@ -137,6 +194,7 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       //formData.append('file', data, data.name);
       //console.log(data)
       //let frames: Blob[] = await this.extractFrames(this.player.record().getDuration());
+
       let frames: string[] = await this.extractFrames(
         this.player.record().getDuration()
       );
@@ -145,7 +203,6 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       console.log(frames);
 
       console.log("uploading recording:", data.name);
-      let video_uuid = uuidv4();
       let sendFrames = async () => {
         for (let i = 0; i < 20; i++) {
           fetch(serverUrl, {
