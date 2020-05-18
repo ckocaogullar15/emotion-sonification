@@ -146,23 +146,14 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
 
       console.log("uploading recording:", data.name);
       let video_uuid = uuidv4();
-      for (let i = 0; i <= 20; i++) {
-        var request_body;
-        if (i < 20) {
-          request_body = JSON.stringify({
-            key: i.toString().padStart(2, "0") + " " + video_uuid,
-            content: frames[i],
-          });
-        } else {
-          request_body = JSON.stringify({
-            key: "end " + video_uuid,
-            content: "finish",
-          });
-        }
-        setTimeout(function () {
+      let sendFrames = async () => {
+        for (let i = 0; i < 20; i++) {
           fetch(serverUrl, {
             method: "POST",
-            body: request_body,
+            body: JSON.stringify({
+              key: i.toString().padStart(2, "0") + " " + video_uuid,
+              content: frames[i],
+            }),
             headers: {
               "Content-Type": "application/json",
             },
@@ -172,8 +163,22 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
               console.error("an upload error occurred! " + error)
             )
             .then((json) => console.log(json));
-        }, 100);
-      }
+        }
+      };
+      await sendFrames();
+      fetch(serverUrl, {
+        method: "POST",
+        body: JSON.stringify({
+          key: "end " + video_uuid,
+          content: "finish",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => console.log("success "))
+        .catch((error) => console.error("an upload error occurred! " + error))
+        .then((json) => console.log(json));
     });
 
     // error handling
