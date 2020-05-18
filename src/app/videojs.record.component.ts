@@ -3,6 +3,7 @@ import { Component, OnInit, OnDestroy, ElementRef } from "@angular/core";
 import videojs from "video.js";
 import * as adapter from "webrtc-adapter/out/adapter_no_global.js";
 import * as RecordRTC from "recordrtc";
+import { v4 as uuidv4 } from "uuid";
 
 /*
   // Required imports when recording audio-only using the videojs-wavesurfer plugin
@@ -135,22 +136,43 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       //var formData = new FormData();
       //formData.append('file', data, data.name);
       //console.log(data)
-      let frames: Blob[] = await this.extractFrames(this.player.record().getDuration());
+      //let frames: Blob[] = await this.extractFrames(this.player.record().getDuration());
+      let frames: string[] = await this.extractFrames(
+        this.player.record().getDuration()
+      );
       //let frames: string[] = await this.extractFramesFromVideoNew(this.player.recordedData) as string[]
       console.log("frames are: ");
       console.log(frames);
 
-
       console.log("uploading recording:", data.name);
-
-      for (let i = 0; i < frames.length; i++) {
-        fetch(serverUrl, {
-          method: "POST",
-          body: frames[i]
-        })
-          .then((response) => console.log("success "))
-          .catch((error) => console.error("an upload error occurred! " + error))
-          .then((json) => console.log(json));
+      let video_uuid = uuidv4();
+      for (let i = 0; i <= 20; i++) {
+        var request_body;
+        if (i < 20) {
+          request_body = JSON.stringify({
+            key: i.toString().padStart(2, "0") + " " + video_uuid,
+            content: frames[i],
+          });
+        } else {
+          request_body = JSON.stringify({
+            key: "end " + video_uuid,
+            content: "finish",
+          });
+        }
+        setTimeout(function () {
+          fetch(serverUrl, {
+            method: "POST",
+            body: request_body,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((response) => console.log("success "))
+            .catch((error) =>
+              console.error("an upload error occurred! " + error)
+            )
+            .then((json) => console.log(json));
+        }, 100);
       }
     });
 
@@ -172,14 +194,14 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
     }
   }
 
-  async extractFrames(duration: number): Promise<Blob[]> {
-    let fps = 20/duration
+  async extractFrames(duration: number): Promise<string[]> {
+    let fps = 20 / duration;
     return new Promise(async (resolve) => {
       const video: HTMLVideoElement = document.getElementById(
         "video_clip1_html5_api"
       ) as HTMLVideoElement;
 
-      let seekResolve; 
+      let seekResolve;
       let flag = 0;
 
       video.addEventListener("seeked", async function () {
@@ -196,37 +218,37 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       let frames = [];
       let interval = 1 / fps;
       let currentTime = 0;
-      
+
       const updateFrame = () => {
         console.log("In Update Frame");
         if (currentTime >= duration) {
           flag = 1;
           return;
         }
-        
+
         context.drawImage(video, 0, 0, w, h);
-        //let base64ImageData = canvas.toDataURL();
-        canvas.toBlob(function(blob){
-            console.log(blob)
-            frames.push(blob);
-          },'image/png');
+        let base64ImageData = canvas.toDataURL();
+        frames.push(base64ImageData);
+        // canvas.toBlob(function(blob){
+        //     console.log(blob)
+        //     frames.push(blob);
+        //   },'image/png');
         console.log(currentTime);
         console.log(video.currentTime);
         console.log(duration);
-        
+
         currentTime += interval;
         requestAnimationFrame(async () => {
           video.currentTime = currentTime;
-          await new Promise(r => seekResolve=r);
+          await new Promise((r) => (seekResolve = r));
           updateFrame();
         });
       };
 
       requestAnimationFrame(() => {
-        video.currentTime = 0
-        requestAnimationFrame(updateFrame)
-        }
-        );
+        video.currentTime = 0;
+        requestAnimationFrame(updateFrame);
+      });
 
       while (flag !== 1) {
         await new Promise((r) => setTimeout(r, 100));
@@ -234,5 +256,4 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       resolve(frames);
     });
   }
-
 }
