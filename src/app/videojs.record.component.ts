@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from "uuid";
 import * as Record from "videojs-record/dist/videojs.record.js";
 
 @Component({
+  moduleId: module.id,
   selector: "videojs-record",
   template: `
     <style>

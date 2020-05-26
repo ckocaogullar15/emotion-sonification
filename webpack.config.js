@@ -3,6 +3,12 @@ const ProvidePlugin = require("webpack/lib/ProvidePlugin");
 
 module.exports = {
   entry: "./src/main.ts",
+  output: {
+    publicPath: "/",
+  },
+  devServer: {
+    historyApiFallback: true,
+  },
   resolve: {
     extensions: [".ts", ".js"],
     alias: {
@@ -31,6 +37,6 @@ module.exports = {
     new HtmlWebpackPlugin({ template: "./src/index.html" }),
   ],
   node: {
-    fs: "empty"
- }
+    fs: "empty",
+  },
 };

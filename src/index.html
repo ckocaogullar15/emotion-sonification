@@ -2,8 +2,13 @@
 <html>
   <head>
     <base href="/" />
-    <title>Angular + videojs-record</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      duy - bir duygu seslendirme projesi | an emotion sonification project
+    </title>
+    <meta
+      name="viewport"
+      content="width=device-width; initial-scale=1; default-src *"
+    />
     <!-- styles -->
     <link href="../node_modules/video.js/dist/video-js.css" rel="stylesheet" />
     <!-- videojs.wavesurfer.css is only required when recording audio-only -->
@@ -17,11 +22,6 @@
     />
   </head>
   <body>
-    <div class="main" style="padding: 30px; text-align: center;">
-      <videojs-record
-        class="video-screen"
-        style="display:inline-block; padding: 50px;"
-      ></videojs-record>
-    </div>
+    <app-root></app-root>
   </body>
 </html>
