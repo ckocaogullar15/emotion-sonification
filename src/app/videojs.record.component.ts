@@ -19,6 +19,7 @@ import { HttpClient } from "@angular/common/http";
 
 // register videojs-record plugin with this import
 import * as Record from "videojs-record/dist/videojs.record.js";
+import { HttpService } from "./http.service";
 
 @Component({
   moduleId: module.id,
@@ -50,7 +51,7 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
   private plugin: any;
 
   // constructor initializes our declared vars
-  constructor(private http: HttpClient, elementRef: ElementRef) {
+  constructor(private http: HttpService, elementRef: ElementRef) {
     this.player = false;
     // save reference to plugin (so it initializes)
     this.plugin = Record;
@@ -204,29 +205,11 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       console.log("frames are: ");
       console.log(frames);
       console.log("uploading recording:", data.name);
-      var requests = [];
-      for (let i = 0; i < 20; i++) {
-        requests.push(
-          this.http.post(
-            serverUrl,
-            JSON.stringify({
-              key: i.toString().padStart(2, "0") + " " + video_uuid,
-              content: frames[i],
-            })
-          )
-        );
-      }
-      let getResults = async () => {
-        forkJoin(requests).subscribe((allResults) =>
-          this.http.post(
-            serverUrl,
-            JSON.stringify({
-              key: "end " + video_uuid,
-              content: "finish",
-            })
-          )
-        );
-      };
+      
+      await this.http.sendPictures(frames).toPromise();
+
+      console.log("hello");
+
       // let sendFrames = async () => {
       //   for (let i = 0; i < 20; i++) {
       //     fetch(serverUrl, {
