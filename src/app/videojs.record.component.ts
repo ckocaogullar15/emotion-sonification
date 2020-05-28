@@ -4,6 +4,8 @@ import videojs from "video.js";
 import * as adapter from "webrtc-adapter/out/adapter_no_global.js";
 import * as RecordRTC from "recordrtc";
 import { v4 as uuidv4 } from "uuid";
+import { Observable, forkJoin } from "rxjs";
+import { HttpClient } from "@angular/common/http";
 
 /*
   // Required imports when recording audio-only using the videojs-wavesurfer plugin
@@ -48,9 +50,8 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
   private plugin: any;
 
   // constructor initializes our declared vars
-  constructor(elementRef: ElementRef) {
+  constructor(private http: HttpClient, elementRef: ElementRef) {
     this.player = false;
-
     // save reference to plugin (so it initializes)
     this.plugin = Record;
 
@@ -202,42 +203,65 @@ export class VideoJSRecordComponent implements OnInit, OnDestroy {
       //let frames: string[] = await this.extractFramesFromVideoNew(this.player.recordedData) as string[]
       console.log("frames are: ");
       console.log(frames);
-
       console.log("uploading recording:", data.name);
-      let sendFrames = async () => {
-        for (let i = 0; i < 20; i++) {
-          fetch(serverUrl, {
-            method: "POST",
-            body: JSON.stringify({
+      var requests = [];
+      for (let i = 0; i < 20; i++) {
+        requests.push(
+          this.http.post(
+            serverUrl,
+            JSON.stringify({
               key: i.toString().padStart(2, "0") + " " + video_uuid,
               content: frames[i],
-            }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          })
-            .then((response) => console.log("success "))
-            .catch((error) =>
-              console.error("an upload error occurred! " + error)
-            )
-            .then((json) => console.log(json));
-        }
+            })
+          )
+        );
+      }
+      let getResults = async () => {
+        forkJoin(requests).subscribe((allResults) =>
+          this.http.post(
+            serverUrl,
+            JSON.stringify({
+              key: "end " + video_uuid,
+              content: "finish",
+            })
+          )
+        );
       };
-      await sendFrames();
-      fetch(serverUrl, {
-        method: "POST",
-        body: JSON.stringify({
-          key: "end " + video_uuid,
-          content: "finish",
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((response) => console.log("success "))
-        .catch((error) => console.error("an upload error occurred! " + error))
-        .then((json) => console.log(json));
-    });
+      // let sendFrames = async () => {
+      //   for (let i = 0; i < 20; i++) {
+      //     fetch(serverUrl, {
+      //       method: "POST",
+      //       body: JSON.stringify({
+      //         key: i.toString().padStart(2, "0") + " " + video_uuid,
+      //         content: frames[i],
+      //       }),
+      //       headers: {
+      //         "Content-Type": "application/json",
+      //       },
+      //     })
+      //       .then((response) => console.log("success "))
+      //       .catch((error) =>
+      //         console.error("an upload error occurred! " + error)
+      //       )
+      //       .then((json) => console.log(json));
+      //   }
+      // };
+
+    //   console.log("got all the results");
+    //   fetch(serverUrl, {
+    //     method: "POST",
+    //     body: JSON.stringify({
+    //       key: "end " + video_uuid,
+    //       content: "finish",
+    //     }),
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   })
+    //     .then((response) => console.log("success "))
+    //     .catch((error) => console.error("an upload error occurred! " + error))
+    //     .then((json) => console.log(json));
+   });
 
     // error handling
     this.player.on("error", (element, error) => {
